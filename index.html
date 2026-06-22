@@ -6,17 +6,121 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     body {
+      background: #F4EDE4;
+      color: #5C4B3A;
+      font-family: serif;
       margin: 0;
-      height: 100vh;
+    }
+
+    .landing-message {
+      height: 50vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-family: 'Inter', sans-serif;
+    }
+
+    .word {
+      position: absolute;
+      color: #8C7355;
+      opacity: 0.4;
+      transition: opacity 2s ease;
+    }
+
+    @keyframes breathe {
+      0% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.04); }
+      100% { opacity: 0.6; transform: scale(1); }
+    }
+
+    @keyframes fadeout {
+      from {
+        opacity: 0.70;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    .breathing {
+      animation: breathe 7s infinite;
+    }
+
+    .fading {
+      animation: fadeout 4s ease forwards;
     }
   </style>
 </head>
 <body>
-  <p>not everything grows at once</p>
+  <div class="landing-message">
+    <p class="breathing" id="message">not everything grows at once</p>
+  </div>
+
+  <div id="fragments"></div>
+
+  <script>
+    let clusters = {};
+    let container = document.getElementById("fragments");
+
+    function spawnWord(word) {
+      let base = clusters[word];
+      let wordEl = document.createElement("span");
+      wordEl.textContent = word;
+      wordEl.style.position = "absolute";
+
+      //small variation in position within the same cluster
+      let x = base.x + (Math.random() * 60 - 30);
+      let y = base.y + (Math.random() * 40 - 20);
+
+      wordEl.style.left = x + "px";
+      wordEl.style.top = y + "px";
+
+      container.appendChild(wordEl);
+
+        //fade the word instance out
+        setTimeout(() => {
+          wordEl.classList.add("fading");
+        }, 2000 + Math.random() * 2000);
+    }
+
+    function startWordClusterThread(word, delay) {
+      setTimeout(() => {
+        function spawnLoop() {
+          spawnWord(word);
+          if (container.children.length > 100) {
+            container.removeChild(container.firstChild);
+          }
+          setTimeout(spawnLoop, 1500 + Math.random() * 2000);
+        }
+        spawnLoop();
+      }, delay);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const sentence = "not everything grows at once";
+      const words = sentence.split(" ");
+
+      setTimeout(() => {
+        let messageToFade = document.getElementById("message");
+        messageToFade.classList.remove("breathing");
+        messageToFade.classList.add("fading");
+      }, 5000);
+
+
+      words.forEach((word, i) => {
+        clusters[word] = {
+          x: window.innerWidth / 4 + (i * 157 - 77),
+          y: window.innerHeight / 1.5 + (Math.random() * 117 - 39)
+        }
+      })
+
+      setTimeout(() => {
+        words.forEach((word, i) => {
+          startWordClusterThread(word, i * 800);
+        });
+      }, 6000)
+
+    });
+  </script>
 </body>
 </html>
